@@ -27,14 +27,18 @@ Task:
 Generate a batch of 10 unique, well-varied multiple-choice English language questions tailored specifically for CEFR ${levelName} learners (covering appropriate vocabulary, grammar, tenses, prepositions, common phrases, idioms, and practical usage for this level).
 
 Output format:
-Return ONLY a valid JSON array. Do not wrap the response in markdown code fences and do not include any text before or after the JSON.
+Return ONLY a valid JSON object with a single "questions" array. Do not wrap the response in markdown code fences and do not include any text before or after the JSON.
 
-Each item in the array must match this exact shape:
+Exact shape:
 {
-  "question": "Clear, concise English question.",
-  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-  "correctIndex": 0,
-  "explanation": "One concise sentence explaining why the answer is correct."
+  "questions": [
+    {
+      "question": "Clear, concise English question.",
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+      "correctIndex": 0,
+      "explanation": "One concise sentence explaining why the answer is correct."
+    }
+  ]
 }
 
 Strict rules:

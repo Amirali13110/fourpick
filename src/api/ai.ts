@@ -6,19 +6,8 @@ export async function generateJson<T>(systemPrompt: string): Promise<T> {
   const trimmedSystemPrompt = systemPrompt.trim()
 
   const payload: AiGenerateRequest = {
-    ...(trimmedSystemPrompt && {
-      systemInstruction: {
-        parts: [{ text: trimmedSystemPrompt }],
-      },
-    }),
-    contents: [
-      {
-        parts: [{ text: 'Generate.' }],
-      },
-    ],
-    generationConfig: {
-      responseMimeType: 'application/json',
-    },
+    ...(trimmedSystemPrompt && { systemPrompt: trimmedSystemPrompt }),
+    userPrompt: 'Generate.',
   }
 
   const { data } = await aiClient.post<AiGenerateResponse>(
@@ -26,7 +15,7 @@ export async function generateJson<T>(systemPrompt: string): Promise<T> {
     payload,
   )
 
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
+  const raw = data.text
 
   if (!raw) {
     throw new Error('AI returned an empty response')

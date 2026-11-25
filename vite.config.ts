@@ -1,26 +1,57 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
+import generateHandler from './netlify/functions/generate.mts'
 
-const GEMINI_MODEL = 'gemini-3.5-flash-lite'
+function localApiPlugin(groqApiKey: string): Plugin {
+  return {
+    name: 'local-api-generate',
+    configureServer(server) {
+      server.middlewares.use('/api/generate', async (req, res) => {
+        if (groqApiKey && !process.env.GROQ_API_KEY) {
+          process.env.GROQ_API_KEY = groqApiKey
+        }
+
+        const chunks: Buffer[] = []
+        for await (const chunk of req) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+
+        const method = req.method ?? 'GET'
+        const body =
+          method === 'GET' || method === 'HEAD'
+            ? undefined
+            : Buffer.concat(chunks)
+
+        const webReq = new Request('http://localhost/api/generate', {
+          method,
+          headers: {
+            'Content-Type': req.headers['content-type'] ?? 'application/json',
+          },
+          body,
+        })
+
+        const webRes = await generateHandler(webReq)
+        res.statusCode = webRes.status
+        res.setHeader(
+          'Content-Type',
+          webRes.headers.get('content-type') ?? 'application/json',
+        )
+        res.end(await webRes.text())
+      })
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), tailwindcss()],
-    server: {
-      proxy: {
-        '/api/generate': {
-          target: 'https://generativelanguage.googleapis.com',
-          changeOrigin: true,
-          rewrite: () => `/v1beta/models/${GEMINI_MODEL}:generateContent`,
-          headers: {
-            'x-goog-api-key': env.GEMINI_API_KEY?.trim() ?? '',
-          },
-        },
-      },
-    },
+    plugins: [
+      react(),
+      tailwindcss(),
+      localApiPlugin(env.GROQ_API_KEY?.trim() ?? ''),
+    ],
   }
 })

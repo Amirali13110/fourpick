@@ -1,27 +1,8 @@
-export interface AiPart {
-  text?: string
-}
-
-export interface AiContent {
-  parts: AiPart[]
-}
-
-export interface AiCandidate {
-  content?: {
-    parts?: AiPart[]
-  }
-}
-
-export interface AiGenerationConfig {
-  responseMimeType?: string
-}
-
 export interface AiGenerateRequest {
-  systemInstruction?: AiContent
-  contents: AiContent[]
-  generationConfig?: AiGenerationConfig
+  systemPrompt?: string
+  userPrompt?: string
 }
 
 export interface AiGenerateResponse {
-  candidates?: AiCandidate[]
+  text: string
 }

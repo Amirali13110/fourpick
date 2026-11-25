@@ -1,5 +1,12 @@
-const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
-const GEMINI_MODEL = 'gemini-3.5-flash-lite'
+import OpenAI from 'openai'
+
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1'
+const GROQ_MODEL = 'openai/gpt-oss-120b'
+
+interface GenerateRequestBody {
+  systemPrompt?: string
+  userPrompt?: string
+}
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
@@ -9,45 +16,73 @@ export default async function handler(req: Request): Promise<Response> {
     )
   }
 
-  const apiKey = process.env.GEMINI_API_KEY?.trim()
+  const apiKey = process.env.GROQ_API_KEY?.trim()
 
   if (!apiKey) {
     return Response.json(
       {
         error: {
-          message: 'Missing GEMINI_API_KEY in Netlify environment variables.',
+          message: 'Missing GROQ_API_KEY in environment variables.',
         },
       },
       { status: 500 },
     )
   }
 
+  let payload: GenerateRequestBody
   try {
-    const body = await req.text()
-
-    const upstream = await fetch(
-      `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body,
-      },
-    )
-
-    const data = await upstream.text()
-
-    return new Response(data, {
-      status: upstream.status,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    payload = (await req.json()) as GenerateRequestBody
   } catch {
     return Response.json(
-      { error: { message: 'Failed to reach Gemini API from server.' } },
+      { error: { message: 'Invalid JSON request body.' } },
+      { status: 400 },
+    )
+  }
+
+  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = []
+
+  const systemPrompt = payload.systemPrompt?.trim()
+  if (systemPrompt) {
+    messages.push({ role: 'system', content: systemPrompt })
+  }
+
+  messages.push({
+    role: 'user',
+    content: payload.userPrompt?.trim() || 'Generate.',
+  })
+
+  try {
+    const client = new OpenAI({
+      apiKey,
+      baseURL: GROQ_BASE_URL,
+    })
+
+    const completion = await client.chat.completions.create({
+      model: GROQ_MODEL,
+      messages,
+      response_format: { type: 'json_object' },
+    })
+
+    const text = completion.choices[0]?.message?.content
+
+    if (!text) {
+      return Response.json(
+        { error: { message: 'Groq returned an empty response.' } },
+        { status: 502 },
+      )
+    }
+
+    return Response.json({ text })
+  } catch (err: unknown) {
+    if (err instanceof OpenAI.APIError) {
+      return Response.json(
+        { error: { message: err.message } },
+        { status: err.status ?? 502 },
+      )
+    }
+
+    return Response.json(
+      { error: { message: 'Failed to reach Groq API from server.' } },
       { status: 502 },
     )
   }

@@ -35,11 +35,19 @@ export async function fetchQuizQuestions(
 ): Promise<QuizQuestion[]> {
   const data = await generateJson<unknown>(buildSystemPrompt(level))
 
-  if (!Array.isArray(data)) {
+  const rawQuestions = Array.isArray(data)
+    ? data
+    : typeof data === 'object' &&
+        data !== null &&
+        Array.isArray((data as { questions?: unknown }).questions)
+      ? (data as { questions: unknown[] }).questions
+      : null
+
+  if (!rawQuestions) {
     throw new Error('AI returned an invalid quiz format.')
   }
 
-  const questions = data.filter(isValidQuestion)
+  const questions = rawQuestions.filter(isValidQuestion)
 
   if (questions.length === 0) {
     throw new Error('No valid quiz questions were returned by the AI.')
