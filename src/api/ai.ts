@@ -22,7 +22,7 @@ export async function generateJson<T>(systemPrompt: string): Promise<T> {
   }
 
   const { data } = await aiClient.post<AiGenerateResponse>(
-    `/models/${AI_CONFIG.model}:generateContent`,
+    AI_CONFIG.endpoint,
     payload,
   )
 

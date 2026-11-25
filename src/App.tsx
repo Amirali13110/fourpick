@@ -22,7 +22,7 @@ export function App() {
   const isIdle = !isLoading && !error && !currentQuestion
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-slate-950 px-5 py-12 text-slate-50 antialiased">
+    <main className="relative flex min-h-dvh flex-col items-center overflow-x-hidden bg-slate-950 px-4 pt-5 pb-28 text-slate-50 antialiased sm:px-6 sm:pt-7">
       {/* Ambient Drifting Background Orbs */}
       <div
         aria-hidden="true"
@@ -32,16 +32,17 @@ export function App() {
         <div className="animate-orb-float-slow absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-fuchsia-600/15 blur-3xl" />
       </div>
 
-      <header className="relative z-10 flex flex-col items-center gap-2 text-center">
-        <span className="inline-block rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-1 text-xs font-bold tracking-widest text-indigo-300 uppercase">
+      {/* Top Header */}
+      <header className="relative z-10 mb-4 flex flex-col items-center gap-1.5 text-center">
+        <span className="inline-block rounded-full border border-indigo-500/30 bg-indigo-500/15 px-3 py-0.5 text-[11px] font-bold tracking-widest text-indigo-300 uppercase">
           English Quiz
         </span>
-        <h1 className="animate-gradient-x bg-gradient-to-r from-white via-indigo-200 to-fuchsia-300 bg-[length:200%_auto] bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
+        <h1 className="animate-gradient-x bg-gradient-to-r from-white via-indigo-200 to-fuchsia-300 bg-[length:200%_auto] bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl">
           FourPick
         </h1>
       </header>
 
-      <div className="relative z-10 flex w-full justify-center">
+      <div className="relative z-10 flex w-full flex-1 items-center justify-center">
         {isIdle && (
           <QuizStart
             selectedLevel={level}

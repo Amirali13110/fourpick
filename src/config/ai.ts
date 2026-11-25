@@ -1,9 +1,7 @@
 import type { EnglishLevel, EnglishLevelOption } from '../types/quiz'
 
 export const AI_CONFIG = {
-  baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-  model: 'gemini-3.5-flash-lite',
-  apiKey: import.meta.env.GEMINI_API_KEY?.trim() ?? '',
+  endpoint: '/api/generate',
 } as const
 
 export const ENGLISH_LEVELS: readonly EnglishLevelOption[] = [
